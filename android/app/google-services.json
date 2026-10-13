@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "55444208940",
+    "project_id": "smk-tkj-lms",
+    "storage_bucket": "smk-tkj-lms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55444208940:android:c118c45801e5e321614089",
+        "android_client_info": {
+          "package_name": "id.sch.smk.smk_tkj_lms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGoSnswXLgxqaPoowrBvHxYPxGfbSpkDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
