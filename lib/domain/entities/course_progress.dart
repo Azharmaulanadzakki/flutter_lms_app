@@ -11,6 +11,7 @@ class CourseProgress extends Equatable {
     this.progressPercentage = 0,
     this.preTestScore,
     this.postTestScore,
+    this.gameScore,
     this.startedAt,
     this.completedAt,
   });
@@ -28,6 +29,9 @@ class CourseProgress extends Equatable {
   final double progressPercentage;
   final double? preTestScore;
   final double? postTestScore;
+
+  /// Nilai simulasi (rata-rata nilai terbaik per misi). Null jika belum selesai.
+  final double? gameScore;
   final DateTime? startedAt;
   final DateTime? completedAt;
 
@@ -43,6 +47,7 @@ class CourseProgress extends Equatable {
     double? progressPercentage,
     double? preTestScore,
     double? postTestScore,
+    double? gameScore,
     DateTime? startedAt,
     DateTime? completedAt,
   }) {
@@ -56,6 +61,7 @@ class CourseProgress extends Equatable {
       progressPercentage: progressPercentage ?? this.progressPercentage,
       preTestScore: preTestScore ?? this.preTestScore,
       postTestScore: postTestScore ?? this.postTestScore,
+      gameScore: gameScore ?? this.gameScore,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -72,6 +78,7 @@ class CourseProgress extends Equatable {
         progressPercentage,
         preTestScore,
         postTestScore,
+        gameScore,
         startedAt,
         completedAt,
       ];

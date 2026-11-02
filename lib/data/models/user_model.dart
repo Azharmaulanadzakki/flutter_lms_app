@@ -10,6 +10,7 @@ class UserModel extends UserEntity {
     required super.email,
     super.role,
     super.photoUrl,
+    super.isActive,
     super.createdAt,
     super.lastLogin,
   });
@@ -20,8 +21,9 @@ class UserModel extends UserEntity {
       uid: doc.id,
       name: (data['name'] as String?) ?? '',
       email: (data['email'] as String?) ?? '',
-      role: data['role'] == 'admin' ? UserRole.admin : UserRole.student,
+      role: userRoleFromValue(data['role'] as String?),
       photoUrl: data['photoUrl'] as String?,
+      isActive: (data['isActive'] as bool?) ?? true,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       lastLogin: (data['lastLogin'] as Timestamp?)?.toDate(),
     );

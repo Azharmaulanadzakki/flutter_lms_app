@@ -13,6 +13,8 @@ class CourseModel extends Course {
     required super.order,
     super.objectives,
     super.hasGame,
+    super.missionIds,
+    super.isPublished,
   });
 
   factory CourseModel.fromFirestore(
@@ -30,6 +32,9 @@ class CourseModel extends Course {
       objectives:
           (d['objectives'] as List?)?.whereType<String>().toList() ?? const [],
       hasGame: (d['hasGame'] as bool?) ?? false,
+      missionIds:
+          (d['missionIds'] as List?)?.whereType<String>().toList() ?? const [],
+      isPublished: (d['isPublished'] as bool?) ?? false,
     );
   }
 }

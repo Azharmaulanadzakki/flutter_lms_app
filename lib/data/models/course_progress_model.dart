@@ -13,6 +13,7 @@ class CourseProgressModel extends CourseProgress {
     super.progressPercentage,
     super.preTestScore,
     super.postTestScore,
+    super.gameScore,
     super.startedAt,
     super.completedAt,
   });
@@ -23,9 +24,8 @@ class CourseProgressModel extends CourseProgress {
     final d = doc.data() ?? <String, dynamic>{};
     return CourseProgressModel(
       courseId: (d['courseId'] as String?) ?? '',
-      completedMaterialIds: (d['completedMaterialIds'] as List?)
-              ?.whereType<String>()
-              .toList() ??
+      completedMaterialIds:
+          (d['completedMaterialIds'] as List?)?.whereType<String>().toList() ??
           const [],
       materialProgress: (d['materialProgress'] as num?)?.toInt() ?? 0,
       preTestCompleted: (d['preTestCompleted'] as bool?) ?? false,
@@ -34,6 +34,7 @@ class CourseProgressModel extends CourseProgress {
       progressPercentage: (d['progressPercentage'] as num?)?.toDouble() ?? 0,
       preTestScore: (d['preTestScore'] as num?)?.toDouble(),
       postTestScore: (d['postTestScore'] as num?)?.toDouble(),
+      gameScore: (d['gameScore'] as num?)?.toDouble(),
       startedAt: (d['startedAt'] as Timestamp?)?.toDate(),
       completedAt: (d['completedAt'] as Timestamp?)?.toDate(),
     );

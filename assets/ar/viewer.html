@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <title>AR Viewer</title>
+
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+      }
+
+      a-scene {
+        width: 100%;
+        height: 100%;
+      }
+
+      .ar-message {
+        position: fixed;
+        z-index: 10;
+        left: 12px;
+        right: 12px;
+        bottom: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        color: white;
+        background: rgba(0, 0, 0, 0.7);
+        font: 14px sans-serif;
+        text-align: center;
+        pointer-events: none;
+      }
+    </style>
+
+    <script>
+      __AFRAME_INLINE__;
+    </script>
+    <script>
+      __MINDAR_INLINE__;
+    </script>
+  </head>
+
+  <body>
+    <div id="ar-message" class="ar-message">Menyiapkan AR...</div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const CFG = __CONFIG__;
+
+        function post(type, extra) {
+          try {
+            if (window.ArBridge) {
+              window.ArBridge.postMessage(
+                JSON.stringify({
+                  type: type,
+                  ...(extra || {}),
+                }),
+              );
+            }
+          } catch (_) {}
+        }
+
+        function message(text) {
+          const element = document.getElementById("ar-message");
+          if (element) element.textContent = text;
+        }
+
+        window.addEventListener("error", function (event) {
+          post("jsError", {
+            message: String(event.message || "JavaScript error"),
+          });
+        });
+
+        window.addEventListener("unhandledrejection", function (event) {
+          post("jsError", {
+            message: "Promise: " + String(event.reason || "unknown error"),
+          });
+        });
+
+        post("htmlStarted", {
+          librariesReady: !!(
+            window.AFRAME &&
+            window.AFRAME.components &&
+            window.AFRAME.components["mindar-image"]
+          ),
+          aframeActive: !!window.AFRAME,
+          mindarActive: !!(
+            window.AFRAME &&
+            window.AFRAME.components &&
+            window.AFRAME.components["mindar-image"]
+          ),
+        });
+
+        if (!window.AFRAME) {
+          message("A-Frame gagal dimuat.");
+          post("libError", {
+            detail: "A-Frame tidak ditemukan.",
+          });
+          return;
+        }
+
+        const AFRAME = window.AFRAME;
+        const THREE = AFRAME.THREE;
+
+        if (!AFRAME.components || !AFRAME.components["mindar-image"]) {
+          message("MindAR gagal dimuat.");
+          post("libError", {
+            detail: "Komponen mindar-image tidak ditemukan.",
+          });
+          return;
+        }
+
+        if (!CFG.mind || !CFG.model) {
+          message("URL marker atau model belum tersedia.");
+          post("libError", {
+            detail: "URL marker dan model wajib diisi.",
+          });
+          return;
+        }
+
+        AFRAME.registerComponent("ar-model-animation", {
+          init: function () {
+            this.mixer = null;
+
+            this.el.addEventListener("model-loaded", () => {
+              const mesh = this.el.getObject3D("mesh");
+
+              if (
+                !CFG.animate ||
+                !mesh ||
+                !mesh.animations ||
+                mesh.animations.length === 0
+              ) {
+                return;
+              }
+
+              this.mixer = new THREE.AnimationMixer(mesh);
+
+              mesh.animations.forEach((clip) => {
+                this.mixer.clipAction(clip).play();
+              });
+            });
+          },
+
+          tick: function (time, delta) {
+            if (this.mixer && delta > 0) {
+              this.mixer.update(delta / 1000);
+            }
+          },
+        });
+
+        function startAR() {
+          message("Menyiapkan kamera AR...");
+
+          const scene = document.createElement("a-scene");
+
+          scene.setAttribute("embedded", "");
+          scene.setAttribute("vr-mode-ui", "enabled: false");
+          scene.setAttribute(
+            "device-orientation-permission-ui",
+            "enabled: false",
+          );
+
+          scene.setAttribute("renderer", {
+            colorManagement: true,
+            physicallyCorrectLights: true,
+          });
+
+          scene.setAttribute("mindar-image", {
+            imageTargetSrc: CFG.mind,
+            autoStart: true,
+            uiLoading: "no",
+            uiScanning: "no",
+            uiError: "no",
+            maxTrack: 1,
+          });
+
+          // Buat seluruh elemen sebelum scene dipasang ke DOM.
+          const camera = document.createElement("a-camera");
+          camera.setAttribute("position", "0 0 0");
+          camera.setAttribute("look-controls", "enabled: false");
+
+          const target = document.createElement("a-entity");
+          target.setAttribute("mindar-image-target", "targetIndex: 0");
+
+          const holder = document.createElement("a-entity");
+          const model = document.createElement("a-gltf-model");
+
+          model.setAttribute("src", CFG.model);
+          model.setAttribute("rotation", CFG.rotation.join(" "));
+          model.setAttribute("ar-model-animation", "");
+
+          model.addEventListener("model-loaded", function () {
+            try {
+              const mesh = model.getObject3D("mesh");
+
+              if (!mesh) {
+                throw new Error("Objek mesh model tidak ditemukan.");
+              }
+
+              mesh.updateMatrixWorld(true);
+
+              const bounds = new THREE.Box3().setFromObject(mesh);
+
+              if (bounds.isEmpty()) {
+                throw new Error("Model tidak memiliki geometri.");
+              }
+
+              const size = bounds.getSize(new THREE.Vector3());
+              const center = bounds.getCenter(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z);
+
+              if (!Number.isFinite(maxDim) || maxDim <= 0) {
+                throw new Error("Ukuran model tidak valid.");
+              }
+
+              const factor = Number(CFG.scale) / maxDim;
+
+              holder.setAttribute("scale", {
+                x: factor,
+                y: factor,
+                z: factor,
+              });
+
+              holder.setAttribute("position", {
+                x: -center.x * factor,
+                y: -bounds.min.y * factor + Number(CFG.offsetY || 0),
+                z: -center.z * factor,
+              });
+
+              message("Model siap. Arahkan kamera ke marker.");
+              post("modelLoaded", {
+                width: size.x,
+                height: size.y,
+                depth: size.z,
+              });
+            } catch (error) {
+              message("Gagal menyiapkan model 3D.");
+              post("modelError", {
+                detail: String(error),
+              });
+            }
+          });
+
+          model.addEventListener("model-error", function (event) {
+            message("Gagal memuat model 3D.");
+            post("modelError", {
+              detail: JSON.stringify(event.detail || {}),
+            });
+          });
+
+          target.addEventListener("targetFound", function () {
+            message("Marker terdeteksi!");
+            post("found", {});
+          });
+
+          target.addEventListener("targetLost", function () {
+            message("Marker tidak terlihat. Arahkan kamera kembali.");
+            post("lost", {});
+          });
+
+          scene.appendChild(camera);
+          target.appendChild(holder);
+          holder.appendChild(model);
+          scene.appendChild(target);
+
+          scene.addEventListener("loaded", function () {
+            const system = scene.systems["mindar-image-system"];
+
+            post("debug", {
+              message: "Scene loaded; MindAR system tersedia: " + !!system,
+            });
+
+            if (!system) {
+              message("Sistem MindAR tidak ditemukan.");
+              post("libError", {
+                detail:
+                  "mindar-image-system tidak ditemukan setelah scene loaded.",
+              });
+            }
+          });
+
+          scene.addEventListener("arReady", function () {
+            message("Kamera siap. Arahkan ke marker.");
+            post("ready", {});
+          });
+
+          scene.addEventListener("arError", function (event) {
+            message("AR gagal dimulai. Periksa izin kamera.");
+            post("arError", {
+              detail: JSON.stringify(event.detail || {}),
+            });
+          });
+
+          document.body.appendChild(scene);
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", startAR, {
+            once: true,
+          });
+        } else {
+          startAR();
+        }
+      })();
+    </script>
+  </body>
+</html>

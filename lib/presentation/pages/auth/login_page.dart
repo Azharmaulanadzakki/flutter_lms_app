@@ -6,6 +6,7 @@ import '../../../core/utils/validators.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../widgets/app_snackbar.dart';
 import '../../widgets/app_text_field.dart';
+import '../../widgets/app_logo.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,8 +30,8 @@ class _LoginPageState extends State<LoginPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     context.read<AuthBloc>().add(
-          AuthLoginRequested(email: _emailCtrl.text, password: _passCtrl.text),
-        );
+      AuthLoginRequested(email: _emailCtrl.text, password: _passCtrl.text),
+    );
   }
 
   @override
@@ -55,13 +56,14 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(Icons.computer, size: 64, color: theme.colorScheme.primary),
+                      const Center(child: AppLogo(size: 72)),
                       const SizedBox(height: 16),
                       Text(
                         'Selamat Datang',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -104,7 +106,9 @@ class _LoginPageState extends State<LoginPage> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text('Masuk'),
                         ),

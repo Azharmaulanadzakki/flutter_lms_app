@@ -9,7 +9,8 @@ plugins {
 
 android {
     namespace = "id.sch.smk.smk_tkj_lms"
-    compileSdk = flutter.compileSdkVersion
+    // compileSdk = flutter.compileSdkVersion
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

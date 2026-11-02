@@ -260,16 +260,17 @@ class _DetailContent extends StatelessWidget {
                 const SizedBox(height: 14),
                 const _SectionTitle('Simulasi 3D'),
                 ActivityTile(
-                  icon: Icons.memory,
-                  title: 'Simulasi Perakitan PC',
+                  icon: Icons.home_work_outlined,
+                  title: 'Simulasi Smart Home (IoT)',
                   subtitle: gameDone
-                      ? 'Simulasi selesai'
-                      : 'Praktik merakit PC dalam 3D',
+                      ? 'Simulasi selesai${progress?.gameScore == null ? '' : ' · nilai ${_fmt(progress?.gameScore)}'}'
+                      : 'Rakit, sambung kabel, dan program rumah pintar',
                   state: gameDone
                       ? ActivityState.done
                       : ActivityState.available,
-                  onTap: () =>
-                      _soon(context, 'Game launcher dibuat di Step 12.'),
+                  onTap: () => context
+                      .push('/course/${course.id}/game')
+                      .then((_) => onReturn()),
                 ),
               ],
 

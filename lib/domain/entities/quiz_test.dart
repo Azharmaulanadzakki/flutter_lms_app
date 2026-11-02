@@ -18,6 +18,7 @@ class QuizTest extends Equatable {
     required this.title,
     required this.questionCount,
     required this.durationMinutes,
+    this.isActive = true,
   });
 
   final String id;
@@ -30,10 +31,11 @@ class QuizTest extends Equatable {
 
   /// Batas waktu dalam menit. 0 = tanpa batas waktu.
   final int durationMinutes;
+  final bool isActive;
 
   bool get hasTimer => durationMinutes > 0;
 
   @override
   List<Object?> get props =>
-      [id, courseId, type, title, questionCount, durationMinutes];
+      [id, courseId, type, title, questionCount, durationMinutes, isActive];
 }

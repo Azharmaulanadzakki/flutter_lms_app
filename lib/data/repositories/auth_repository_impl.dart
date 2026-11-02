@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 import '../../core/errors/failures.dart';
 import '../../domain/entities/user_entity.dart';
@@ -41,6 +40,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<T> _guard<T>(Future<T> Function() action) async {
     try {
       return await action().timeout(_timeout);
+    } on Failure {
+      // Pesan yang sudah ramah (misalnya akun dinonaktifkan) diteruskan apa adanya.
+      rethrow;
     } on TimeoutException {
       throw const Failure('Koneksi terlalu lama. Periksa internet lalu coba lagi.');
     } on FirebaseAuthException catch (e) {

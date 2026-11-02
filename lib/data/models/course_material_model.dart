@@ -11,6 +11,7 @@ class CourseMaterialModel extends CourseMaterial {
     required super.type,
     required super.mediaUrl,
     required super.order,
+    super.isPublished,
   });
 
   factory CourseMaterialModel.fromFirestore(
@@ -25,6 +26,7 @@ class CourseMaterialModel extends CourseMaterial {
       type: _parseType(d['type'] as String?),
       mediaUrl: (d['mediaUrl'] as String?) ?? '',
       order: (d['order'] as num?)?.toInt() ?? 0,
+      isPublished: (d['isPublished'] as bool?) ?? false,
     );
   }
 

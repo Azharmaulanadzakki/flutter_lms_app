@@ -35,7 +35,7 @@ class Preview3dCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Simulasi Perakitan PC 3D',
+                'Simulasi Perakitan IoT',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

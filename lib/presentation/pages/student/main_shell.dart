@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../injection_container.dart';
+import '../../blocs/ar/ar_cubits.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/courses/courses_bloc.dart';
 import '../../blocs/dashboard/dashboard_bloc.dart';
 import '../../blocs/progress/progress_bloc.dart';
 import '../../widgets/state_views.dart';
+import 'ar/ar_scanner_page.dart';
 import 'courses_page.dart';
 import 'home_page.dart';
 import 'profile_page.dart';
 import 'progress/progress_page.dart';
 
-/// Kerangka halaman siswa: bottom navigation + 4 tab.
+/// Kerangka halaman siswa: bottom navigation + 5 tab.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -39,8 +41,9 @@ class _MainShellState extends State<MainShell> {
         BlocProvider(
           create: (_) => sl<CoursesBloc>()..add(CoursesRequested(user.uid)),
         ),
-        // Dimuat saat tab Progress dibuka, bukan saat aplikasi mulai.
+        // Dimuat saat tab dibuka, bukan saat aplikasi mulai.
         BlocProvider(create: (_) => sl<ProgressBloc>()),
+        BlocProvider(create: (_) => sl<ArListCubit>()),
       ],
       // Builder: supaya context di bawah ini sudah bisa menemukan provider.
       child: Builder(
@@ -51,6 +54,7 @@ class _MainShellState extends State<MainShell> {
               HomePage(onSeeAllCourses: () => setState(() => _index = 1)),
               const CoursesPage(),
               const ProgressPage(),
+              const ArScannerPage(),
               const ProfilePage(),
             ],
           ),
@@ -60,6 +64,9 @@ class _MainShellState extends State<MainShell> {
               setState(() => _index = i);
               if (i == 2) {
                 context.read<ProgressBloc>().add(ProgressRequested(user.uid));
+              }
+              if (i == 3) {
+                context.read<ArListCubit>().load();
               }
             },
             destinations: const [
@@ -77,6 +84,11 @@ class _MainShellState extends State<MainShell> {
                 icon: Icon(Icons.insights_outlined),
                 selectedIcon: Icon(Icons.insights),
                 label: 'Progress',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.view_in_ar_outlined),
+                selectedIcon: Icon(Icons.view_in_ar),
+                label: 'AR',
               ),
               NavigationDestination(
                 icon: Icon(Icons.person_outline),

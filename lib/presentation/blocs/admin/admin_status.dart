@@ -1,0 +1,1 @@
+enum AdminLoadStatus { initial, loading, success, failure }

@@ -11,6 +11,8 @@ class Course extends Equatable {
     required this.order,
     this.objectives = const [],
     this.hasGame = false,
+    this.missionIds = const [],
+    this.isPublished = true,
   });
 
   final String id;
@@ -26,8 +28,14 @@ class Course extends Equatable {
   /// Tujuan pembelajaran.
   final List<String> objectives;
 
-  /// True jika course punya simulasi 3D.
+  /// True jika course punya simulasi (game).
   final bool hasGame;
+
+  /// Misi simulasi milik course ini. Kosong berarti semua misi.
+  final List<String> missionIds;
+
+  /// Course yang belum dipublikasikan tidak tampil untuk siswa.
+  final bool isPublished;
 
   @override
   List<Object?> get props => [
@@ -40,5 +48,7 @@ class Course extends Equatable {
         order,
         objectives,
         hasGame,
+        missionIds,
+        isPublished,
       ];
 }

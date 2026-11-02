@@ -1,0 +1,209 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Dokumen profil milik pengguna yang sedang login.
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Guru, admin, super admin. Akun nonaktif kehilangan hak staf.
+    function isStaff() {
+      return isSignedIn()
+        && me().role in ['teacher', 'admin', 'superadmin']
+        && me().get('isActive', true) == true;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn()
+        && me().role == 'superadmin'
+        && me().get('isActive', true) == true;
+    }
+
+        // Admin dan super admin (tanpa guru). Akun nonaktif kehilangan hak.
+    function isAdminLevel() {
+      return isSignedIn()
+        && me().role in ['admin', 'superadmin']
+        && me().get('isActive', true) == true;
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isStaff());
+
+      allow create: if isSignedIn() && (
+        // Pendaftaran mandiri: selalu siswa dan aktif.
+        (request.auth.uid == uid
+          && request.resource.data.role == 'student'
+          && request.resource.data.get('isActive', true) == true
+          && request.resource.data.keys().hasOnly([
+               'name', 'email', 'role', 'photoUrl',
+               'createdAt', 'lastLogin', 'isActive'
+             ]))
+        // Dibuat oleh super admin.
+        || isSuperAdmin()
+      );
+
+      allow update: if isSignedIn() && (
+        // Pengguna hanya boleh mengubah field ini pada dirinya sendiri.
+        (request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['lastLogin', 'name', 'photoUrl']))
+        // Super admin boleh mengubah siapa saja, tetapi tidak role/status dirinya sendiri.
+        || (isSuperAdmin()
+            && (uid != request.auth.uid
+                || (request.resource.data.get('role', '') == resource.data.get('role', '')
+                    && request.resource.data.get('isActive', true)
+                       == resource.data.get('isActive', true))))
+      );
+
+      allow delete: if isSuperAdmin() && uid != request.auth.uid;
+    }
+
+    match /courses/{courseId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.isPublished == true);
+      allow write: if isStaff();
+    }
+
+    match /materials/{materialId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.isPublished == true);
+      allow write: if isStaff();
+    }
+
+    match /courseProgress/{progressId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isStaff());
+
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && progressId == request.auth.uid + '_' + request.resource.data.courseId
+                    && request.resource.data.keys().hasOnly([
+                         'userId', 'courseId', 'completedMaterialIds',
+                         'materialProgress', 'progressPercentage',
+                         'preTestCompleted', 'preTestScore',
+                         'postTestCompleted', 'postTestScore',
+                         'startedAt', 'completedAt', 'updatedAt'
+                       ]);
+
+      allow update: if isSignedIn()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.courseId == resource.data.courseId
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                         'completedMaterialIds', 'materialProgress',
+                         'progressPercentage', 'preTestCompleted', 'preTestScore',
+                         'postTestCompleted', 'postTestScore',
+                         'startedAt', 'completedAt', 'updatedAt'
+                       ])
+                    // Nilai pre-test dan post-test tidak bisa diubah setelah tersimpan.
+                    && (resource.data.get('preTestCompleted', false) == false
+                        || request.resource.data.get('preTestScore', null)
+                           == resource.data.get('preTestScore', null))
+                    && (resource.data.get('postTestCompleted', false) == false
+                        || request.resource.data.get('postTestScore', null)
+                           == resource.data.get('postTestScore', null))
+                            // Status simulasi tidak bisa dibatalkan setelah selesai.
+                    && (resource.data.get('gameCompleted', false) == false
+                        || request.resource.data.get('gameCompleted', false) == true);
+    }
+
+    match /gameResults/{resultId} {
+      // resource == null: dokumen belum ada (pengecekan sebelum membuat).
+      allow read: if isSignedIn()
+                  && (resource == null || resource.data.userId == request.auth.uid || isStaff());
+
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && resultId.matches(request.auth.uid + '_.*')
+                    && request.resource.data.keys().hasOnly([
+                         'userId', 'courseId', 'missionId', 'score', 'durationSec',
+                         'errors', 'status', 'playedAt', 'createdAt', 'solution'
+                       ])
+                    && request.resource.data.missionId is string
+                    && request.resource.data.courseId is string
+                    && request.resource.data.score is int
+                    && request.resource.data.score >= 0
+                    && request.resource.data.score <= 100
+                    && request.resource.data.errors is int
+                    && request.resource.data.errors >= 0
+                    && request.resource.data.durationSec is int
+                    && request.resource.data.durationSec >= 0
+                    && request.resource.data.status in ['completed', 'failed']
+                    && request.resource.data.playedAt is timestamp
+                    && request.resource.data.solution is map
+                    && request.resource.data.createdAt == request.time;
+
+      // Hasil tidak bisa diubah atau dihapus oleh siswa.
+      allow update, delete: if false;
+    }
+
+    match /tests/{testId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.isActive == true);
+      allow write: if isStaff();
+    }
+
+     match /questions/{questionId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.isActive == true);
+      allow write: if isStaff();
+    }
+    // Kunci jawaban: hanya terbaca setelah siswa mengirim jawaban test tersebut.
+     match /questionKeys/{questionId} {
+      allow get: if isStaff() || (isSignedIn()
+        && get(/databases/$(database)/documents/testAttempts/$(request.auth.uid + '_' + resource.data.testId))
+             .data.status in ['submitted', 'graded']);
+      allow list: if isStaff();
+      allow write: if isStaff();
+    }
+
+    match /testAttempts/{attemptId} {
+      // resource == null: dokumen belum ada (siswa mengecek apakah sudah pernah mencoba).
+      allow read: if isSignedIn()
+                  && (resource == null || resource.data.userId == request.auth.uid || isStaff());
+
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && attemptId == request.auth.uid + '_' + request.resource.data.testId
+                    && request.resource.data.status == 'in_progress'
+                    && request.resource.data.keys().hasOnly([
+                         'userId', 'courseId', 'testId', 'testType',
+                         'questionIds', 'status', 'timeLimitSeconds', 'startedAt'
+                       ])
+                    // Post-test hanya bisa dimulai setelah pre-test dikerjakan.
+                    && (request.resource.data.testType != 'post'
+                        || get(/databases/$(database)/documents/courseProgress/$(request.auth.uid + '_' + request.resource.data.courseId))
+                             .data.get('preTestCompleted', false) == true);
+
+      allow update: if isSignedIn()
+                    && resource.data.userId == request.auth.uid
+                    && (
+                      // 1) kirim jawaban
+                      (resource.data.status == 'in_progress'
+                        && request.resource.data.status == 'submitted'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'answers', 'submittedAt']))
+                      ||
+                      // 2) simpan nilai (sekali, setelah itu terkunci)
+                      (resource.data.status == 'submitted'
+                        && request.resource.data.status == 'graded'
+                        && request.resource.data.score >= 0
+                        && request.resource.data.score <= 100
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'score', 'correctAnswer', 'wrongAnswer', 'completedAt']))
+                    );
+    }
+
+    match /settings/{docId} {
+      // Branding dibaca tanpa login (Splash dan Landing). Dokumen lain butuh login.
+      allow read: if docId == 'branding' || isSignedIn();
+      allow write: if (docId == 'branding' && isAdminLevel())
+                   || (docId != 'branding' && isStaff());
+    }
+
+    match /arItems/{itemId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.isPublished == true);
+      allow write: if isStaff();
+    }
+  }
+}

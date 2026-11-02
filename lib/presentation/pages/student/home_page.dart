@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../domain/entities/course_item.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/dashboard/dashboard_bloc.dart';
@@ -78,7 +77,7 @@ class HomePage extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Halo, ${firstName.isEmpty ? 'Siswa' : firstName} 👋',
+                  'Halo, ${firstName.isEmpty ? 'Siswa' : firstName} ',
                   style: theme.textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),

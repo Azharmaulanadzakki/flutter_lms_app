@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../widgets/app_logo.dart';
 import 'widgets/feature_card.dart';
 import 'widgets/preview_3d_card.dart';
+import '../../blocs/branding/branding_cubit.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -83,7 +84,7 @@ class LandingPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        '© ${DateTime.now().year} ${AppStrings.appName}',
+                        '© ${DateTime.now().year} ${context.appName}',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall,
                       ),
@@ -127,7 +128,7 @@ class _Hero extends StatelessWidget {
                       const AppLogo(size: 36),
                       const SizedBox(width: 10),
                       Text(
-                        AppStrings.appName,
+                        context.appName,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

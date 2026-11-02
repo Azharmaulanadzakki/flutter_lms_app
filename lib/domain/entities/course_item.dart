@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-
 import 'course.dart';
 import 'course_progress.dart';
 
@@ -48,7 +47,7 @@ class CourseItem extends Equatable {
     return CourseStatus.notStarted;
   }
 
-  /// Syarat pertama yang belum terpenuhi, atau [PostTestLock.none].
+  /// Syarat pertama yang belum terpenuhi, atau = PostTestLock.none jika semua terpenuhi.
   PostTestLock get postTestLock {
     final p = progress;
     if (!(p?.preTestCompleted ?? false)) return PostTestLock.preTest;

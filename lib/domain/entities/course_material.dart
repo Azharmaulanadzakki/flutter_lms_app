@@ -1,4 +1,3 @@
-// TODO Implement this library.
 import 'package:equatable/equatable.dart';
 
 enum MaterialKind { text, video, pdf }
@@ -12,6 +11,7 @@ class CourseMaterial extends Equatable {
     required this.type,
     required this.mediaUrl,
     required this.order,
+    this.isPublished = true,
   });
 
   final String id;
@@ -25,8 +25,9 @@ class CourseMaterial extends Equatable {
   /// Link YouTube / PDF (untuk type video atau pdf).
   final String mediaUrl;
   final int order;
+  final bool isPublished;
 
   @override
   List<Object?> get props =>
-      [id, courseId, title, content, type, mediaUrl, order];
+      [id, courseId, title, content, type, mediaUrl, order, isPublished];
 }

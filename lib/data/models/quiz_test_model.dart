@@ -10,6 +10,7 @@ class QuizTestModel extends QuizTest {
     required super.title,
     required super.questionCount,
     required super.durationMinutes,
+    super.isActive,
   });
 
   factory QuizTestModel.fromFirestore(
@@ -23,6 +24,7 @@ class QuizTestModel extends QuizTest {
       title: (d['title'] as String?) ?? '',
       questionCount: (d['questionCount'] as num?)?.toInt() ?? 0,
       durationMinutes: (d['durationMinutes'] as num?)?.toInt() ?? 0,
+      isActive: (d['isActive'] as bool?) ?? false,
     );
   }
 }

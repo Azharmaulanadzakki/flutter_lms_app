@@ -5,15 +5,11 @@ import '../../../../../domain/entities/course_item.dart';
 import '../../../../widgets/course_status_badge.dart';
 
 class CourseProgressTile extends StatelessWidget {
-  const CourseProgressTile({
-    super.key,
-    required this.item,
-    required this.onTap,
-  });
+  const CourseProgressTile({super.key, required this.item, this.onTap});
 
   final CourseItem item;
-  final VoidCallback onTap;
-
+  final VoidCallback? onTap;
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

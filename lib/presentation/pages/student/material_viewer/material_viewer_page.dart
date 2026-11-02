@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../../domain/entities/course_material.dart';
-import '../../../../../injection_container.dart';
-import '../../../../blocs/auth/auth_bloc.dart';
-import '../../../../blocs/material_viewer/material_viewer_bloc.dart';
-import '../../../../widgets/app_snackbar.dart';
-import '../../../../widgets/state_views.dart';
-import '../../course_detail/widgets/material_tile.dart';
-import 'pdf_material_view.dart';
+import 'package:smk_tkj_lms/presentation/pages/student/material_viewer/widgets/pdf_material_view.dart';
+import 'package:smk_tkj_lms/presentation/pages/student/material_viewer/widgets/text_material_view.dart';
+import 'package:smk_tkj_lms/presentation/pages/student/material_viewer/widgets/video_material_view.dart';
+import 'widgets/pdf_material_view.dart' hide PdfMaterialView;
+import 'widgets/text_material_view.dart';
+import 'widgets/video_material_view.dart';
+import '../../../../domain/entities/course_material.dart';
+import '../../../../injection_container.dart';
+import '../../../blocs/auth/auth_bloc.dart';
+import '../../../blocs/material_viewer/material_viewer_bloc.dart';
+import '../../../widgets/app_snackbar.dart';
+import '../../../widgets/state_views.dart';
+import '../course_detail/widgets/material_tile.dart';
+import 'pdf_material_view.dart' hide PdfMaterialView;
 import 'text_material_view.dart';
 import 'video_material_view.dart';
 
